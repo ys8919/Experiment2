@@ -139,6 +139,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     textView.setText(textView.getText().toString() + "0");
                 }
 
+
                 break;
             case R.id.button1:
                 if (clear_flag == true) {

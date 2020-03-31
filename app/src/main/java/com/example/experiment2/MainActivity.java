@@ -2,12 +2,16 @@ package com.example.experiment2;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.apache.commons.jexl3.*;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
@@ -41,13 +45,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     boolean clear_flag=false;//清空
 
+    private long mExitTime;
+
     String SafeInfo,SafeInfo1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-
 
 
         Btn0=findViewById(R.id.button0);
@@ -96,6 +101,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         BtnPer.setOnClickListener(this);
         BtnPoint.setOnClickListener(this);
 
+        SharedPreferences sharedPreferences= getSharedPreferences("text", Activity.MODE_PRIVATE);
+        String SafeInfo11 =sharedPreferences.getString("SafeInfo", "");
+        String SafeInfo12 =sharedPreferences.getString("SafeInfo1", "");
+      //  Log.d(TAG, "onCreate:SharedPreferences读取  SafeInfo11："+SafeInfo11);
+        if(!SafeInfo11.equals("")){
+
+            SafeInfo=SafeInfo11;
+            textView.setText(SafeInfo11);
+        }
+        if(!SafeInfo12.equals("")){
+            SafeInfo1=SafeInfo12;
+            textView1.setText(SafeInfo12);
+        }
        /* if(savedInstanceState!=null){
             Log.d(TAG, "onCreate: savedInstanceState一次");
             SafeInfo=savedInstanceState.getString("SafeInfo");
@@ -105,9 +123,39 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }*/
     }
 
+    //监听退出、数据处理
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+
+        if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
+            exit();
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+    private void exit() {
+        if ((System.currentTimeMillis() - mExitTime) > 2000) {
+            Toast.makeText(MainActivity.this, "再按一次退出应用", Toast.LENGTH_SHORT).show();
+            mExitTime = System.currentTimeMillis();
+        } else {
+            //用户退出处理
+            Log.d(TAG, "exit: 退出");
+            SharedPreferences mySharedPreferences=getSharedPreferences("text", Activity.MODE_PRIVATE);
+            SharedPreferences.Editor editor = mySharedPreferences.edit();
+            SafeInfo=textView.getText().toString();
+            SafeInfo1=textView1.getText().toString();
+          //  Log.d(TAG, "exit: SafeInfo:"+SafeInfo);
+            editor.putString("SafeInfo",SafeInfo);
+            editor.putString("SafeInfo1",SafeInfo1);
+            editor.commit();
+            finish();
+            System.exit(0);
+        }
+    }
+    //异常退出/横屏 数据处理
     public void onRestoreInstanceState(Bundle savedInstanceState){
         super.onRestoreInstanceState(savedInstanceState);
-        Log.d(TAG, "onRestoreInstanceState: savedInstanceState一次");
+      //  Log.d(TAG, "onRestoreInstanceState: savedInstanceState一次");
         SafeInfo=savedInstanceState.getString("SafeInfo");
         SafeInfo1=savedInstanceState.getString("SafeInfo1");
         textView.setText(SafeInfo);
